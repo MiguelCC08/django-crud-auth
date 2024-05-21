@@ -1,5 +1,5 @@
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout, authenticate
@@ -34,7 +34,7 @@ def signup(request):
                   
                    
 def tasks(request):
-    tasks = task.objects.all(),
+    tasks = task.objects.filter(user=request.user, datecompleted__isnull=True)
     return render(request, 'tasks.html', {'tasks': tasks})
 
 def create_task(request):
@@ -44,12 +44,22 @@ def create_task(request):
           'form': taskform
       })
     else:
-        form = taskform(request.POST)
-        new_task = form.save(commit=False)
-        new_task.user = request.user
-        new_task.save()
-        return redirect('tasks')
-        
+        try:
+            form = taskform(request.POST)
+            new_task = form.save(commit=False)
+            new_task.user = request.user
+            new_task.save()
+            return redirect('tasks')
+        except: ValueError
+        return render(request, 'create_task.html',  {
+                'form': taskform,
+                'error': 'please provide valida date'
+            }) 
+     
+def task_detail(request, task_id):
+    task = get_object_or_404(task, pk=task_id)
+    return render(request, 'task_detail.html', {'task': task})
+       
      
   
 
