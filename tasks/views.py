@@ -57,8 +57,21 @@ def create_task(request):
             }) 
      
 def task_detail(request, task_id):
-    task = get_object_or_404(task, pk=task_id)
-    return render(request, 'task_detail.html', {'task': task})
+ if request.method == 'GET':
+        Task = get_object_or_404(task, pk=task_id)
+        form = taskform(instance=task)
+        return render(request, 'task_detail.html', {'Task': Task, 'form': form})
+ else:
+    try:
+         Task = get_object_or_404(task, pk=task_id)
+         form = taskform(request.POST, instance=Task)
+         form.save()
+         return redirect('tasks')
+    except ValueError:
+         return render(request, 'task_detail.html', {'Task': Task, 'form': form,
+             'error': "Error updating task" })
+          
+
        
      
   
